@@ -1,1 +1,2 @@
 <RouterView />
+<template></template>
