@@ -4,13 +4,16 @@ import {
   ColorType,
   CrosshairMode,
   HistogramSeries,
+  LineSeries,
   createChart,
   type CandlestickData,
   type HistogramData,
+  type LineData,
   type IChartApi,
   type ISeriesApi,
   type UTCTimestamp,
 } from "lightweight-charts";
+import { sma } from "@/utils/indicators";
 import type { Candle } from "@/types/market";
 import type { ChartSettings } from "@/types/chart";
 import { getCssVariableValue } from "@/utils/getCssVariableValue";
@@ -26,6 +29,9 @@ export function useMarketChart(
 
   let candleArray: CandlestickData[] = [];
   let volumeArray: HistogramData[] = [];
+
+  let maLine: ISeriesApi<"Line">;
+  let maArray: LineData[] = [];
 
   const chartOptions = {
     autoSize: true,
@@ -65,6 +71,7 @@ export function useMarketChart(
   function makeChartData(): void {
     candleArray = [];
     volumeArray = [];
+    maArray = [];
 
     const list = candles.value;
     for (let i = 0; i < list.length; i++) {
@@ -84,13 +91,22 @@ export function useMarketChart(
         color: getVolumeColor(list[i]),
       });
     }
+
+    // 이동평균선 데이터 생성
+    const maResult = sma(list, settings.value.maPeriod);
+    for (let i = 0; i < maResult.length; i++) {
+      maArray.push({
+        time: maResult[i].time as UTCTimestamp,
+        value: maResult[i].value,
+      });
+    }
   }
 
   function setChartData(): void {
     makeChartData();
     candleStickSeries.setData(candleArray);
     volumeSeries.setData(volumeArray);
-
+    maLine.setData(maArray);
     chart?.timeScale().fitContent();
   }
 
@@ -123,10 +139,25 @@ export function useMarketChart(
       scaleMargins: { top: 0.8, bottom: 0 },
     });
 
+    maLine = chart.addSeries(LineSeries, {
+      title: "MA",
+      priceScaleId: "right",
+      lineWidth: 2,
+      color: "#f5a524",
+      priceLineVisible: false,
+      lastValueVisible: false,
+    });
+
     setChartData();
   });
 
   watch(candles, () => chart && setChartData());
+
+  // MA 기간이 바뀌면 데이터 다시 계산
+  watch(
+    () => settings.value.maPeriod,
+    () => chart && setChartData(),
+  );
 
   onBeforeUnmount(() => {
     if (chart) {
