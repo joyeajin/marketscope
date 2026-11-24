@@ -1,0 +1,38 @@
+:root {
+  --bg: #0f1218;
+  --card: #181d27;
+  --line: #232a38;
+  --text: #e8ecf3;
+  --sub: #9aa4b5;
+  --accent: #4f8cff;
+  --up: #26a69a;
+  --down: #ef5350;
+
+  --chart-x-font-color: #9aa4b5;
+  --chart-grid: #1f2633;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    "Pretendard",
+    -apple-system,
+    "Noto Sans KR",
+    sans-serif;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 16px;
+}
+
+ul {
+  list-style: none;
+}
