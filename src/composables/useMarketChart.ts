@@ -3,8 +3,10 @@ import {
   CandlestickSeries,
   ColorType,
   CrosshairMode,
+  HistogramSeries,
   createChart,
   type CandlestickData,
+  type HistogramData,
   type IChartApi,
   type ISeriesApi,
   type UTCTimestamp,
@@ -20,8 +22,10 @@ export function useMarketChart(
 ) {
   let chart: IChartApi | null = null;
   let candleStickSeries: ISeriesApi<"Candlestick">;
+  let volumeSeries: ISeriesApi<"Histogram">;
 
   let candleArray: CandlestickData[] = [];
+  let volumeArray: HistogramData[] = [];
 
   const chartOptions = {
     autoSize: true,
@@ -51,17 +55,33 @@ export function useMarketChart(
     },
   };
 
-  // 차트용 캔들 배열 생성
+  // 상승/하락 색에 맞춘 거래량 막대 색
+  const getVolumeColor = (c: Candle): string =>
+    (c.close >= c.open
+      ? settings.value.candleUpColor
+      : settings.value.candleDownColor) + "66";
+
+  // 차트용 캔들, 거래량 배열 생성
   function makeChartData(): void {
     candleArray = [];
+    volumeArray = [];
+
     const list = candles.value;
     for (let i = 0; i < list.length; i++) {
+      const time = list[i].time as UTCTimestamp;
+
       candleArray.push({
-        time: list[i].time as UTCTimestamp,
+        time,
         open: list[i].open,
         high: list[i].high,
         low: list[i].low,
         close: list[i].close,
+      });
+
+      volumeArray.push({
+        time,
+        value: list[i].volume,
+        color: getVolumeColor(list[i]),
       });
     }
   }
@@ -69,6 +89,8 @@ export function useMarketChart(
   function setChartData(): void {
     makeChartData();
     candleStickSeries.setData(candleArray);
+    volumeSeries.setData(volumeArray);
+
     chart?.timeScale().fitContent();
   }
 
@@ -89,6 +111,16 @@ export function useMarketChart(
     candleStickSeries.priceScale().applyOptions({
       autoScale: true,
       scaleMargins: { top: 0.1, bottom: 0.3 },
+    });
+
+    //  거래량은 별도 스케일로 하단 20% 영역에 표시
+    volumeSeries = chart.addSeries(HistogramSeries, {
+      priceScaleId: "volume",
+      priceFormat: { type: "volume" },
+      priceLineVisible: false,
+    });
+    chart.priceScale("volume").applyOptions({
+      scaleMargins: { top: 0.8, bottom: 0 },
     });
 
     setChartData();
