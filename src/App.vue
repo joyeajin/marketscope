@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import MarketChart from "@/components/chart/MarketChart.vue";
-import { generateCandles, mockAssets } from "@/mocks/marketData";
-import { DEFAULT_CHART_SETTINGS } from "@/types/chart";
-
-const candles = generateCandles(mockAssets[0], "1M");
+import DashboardView from "@/views/DashboardView.vue";
 </script>
 
 <template>
   <div style="padding: 24px">
-    <MarketChart :candles="candles" :settings="DEFAULT_CHART_SETTINGS" />
+    <DashboardView />
   </div>
 </template>

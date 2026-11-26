@@ -13,3 +13,7 @@ export const formatVolume = (value: number): string => {
 
   return String(value);
 };
+
+// 등락률: +1.26%
+export const formatPercent = (value: number): string =>
+  `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
