@@ -1,4 +1,4 @@
-import { onBeforeUnmount, onMounted, watch, type Ref } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch, type Ref } from "vue";
 import {
   CandlestickSeries,
   ColorType,
@@ -9,6 +9,7 @@ import {
   type CandlestickData,
   type HistogramData,
   type LineData,
+  type MouseEventParams,
   type IChartApi,
   type ISeriesApi,
   type UTCTimestamp,
@@ -32,6 +33,8 @@ export function useMarketChart(
 
   let maLine: ISeriesApi<"Line">;
   let maArray: LineData[] = [];
+
+  const hovered = ref<Candle | null>(null);
 
   const chartOptions = {
     autoSize: true,
@@ -110,6 +113,38 @@ export function useMarketChart(
     chart?.timeScale().fitContent();
   }
 
+  // ==========================================
+  // 크로스헤어 범례 (마우스 위치의 OHLCV)
+  // ==========================================
+  const updateLegend = (param: MouseEventParams): void => {
+    // 차트 영역 밖이면 범례 초기화
+    if (!param.point || !param.time || param.point.x < 0 || param.point.y < 0) {
+      hovered.value = null;
+      return;
+    }
+
+    const bar = param.seriesData.get(candleStickSeries) as
+      | CandlestickData
+      | undefined;
+
+    if (!bar) {
+      hovered.value = null;
+      return;
+    }
+
+    // 거래량은 캔들 시리즈에 없어서 volumeArray에서 같은 시간의 값을 찾는다
+    const volume = volumeArray.find((v) => v.time === bar.time)?.value ?? 0;
+
+    hovered.value = {
+      time: bar.time as number,
+      open: bar.open,
+      high: bar.high,
+      low: bar.low,
+      close: bar.close,
+      volume,
+    };
+  };
+
   onMounted(() => {
     if (!chartContainer.value) return;
     chart = createChart(chartContainer.value, chartOptions);
@@ -148,6 +183,8 @@ export function useMarketChart(
       lastValueVisible: false,
     });
 
+    chart.subscribeCrosshairMove(updateLegend);
+
     setChartData();
   });
 
@@ -161,8 +198,12 @@ export function useMarketChart(
 
   onBeforeUnmount(() => {
     if (chart) {
+      chart.unsubscribeCrosshairMove(updateLegend);
+
       chart.remove();
       chart = null;
     }
   });
+
+  return { hovered };
 }
