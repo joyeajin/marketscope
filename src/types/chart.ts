@@ -9,6 +9,7 @@ export interface ChartSettings {
   showGrid: boolean;
   candleUpColor: string;
   candleDownColor: string;
+  showMa: boolean;
 }
 
 export const DEFAULT_CHART_SETTINGS: ChartSettings = {
@@ -18,4 +19,7 @@ export const DEFAULT_CHART_SETTINGS: ChartSettings = {
   showGrid: true,
   candleUpColor: "#26a69a",
   candleDownColor: "#ef5350",
+  showMa: true,
 };
+
+export const MA_PERIODS = [5, 10, 20, 60] as const;

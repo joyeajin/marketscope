@@ -105,6 +105,26 @@ export function useMarketChart(
     }
   }
 
+  // 설정값을 차트와 시리즈 옵션에 반영
+  function applySettings(): void {
+    const s = settings.value;
+
+    candleStickSeries.applyOptions({
+      upColor: s.candleUpColor,
+      downColor: s.candleDownColor,
+      wickUpColor: s.candleUpColor,
+      wickDownColor: s.candleDownColor,
+    });
+
+    volumeSeries.applyOptions({ visible: s.showVolume });
+
+    maLine.applyOptions({ visible: s.showMa });
+
+    chart?.applyOptions({
+      grid: { horzLines: { visible: s.showGrid } },
+    });
+  }
+
   function setChartData(): void {
     makeChartData();
     candleStickSeries.setData(candleArray);
@@ -185,16 +205,24 @@ export function useMarketChart(
 
     chart.subscribeCrosshairMove(updateLegend);
 
+    applySettings();
     setChartData();
   });
 
   watch(candles, () => chart && setChartData());
 
-  // MA 기간이 바뀌면 데이터 다시 계산
+  // 색상이나 MA 기간이 바뀌면 거래량 색, MA 데이터를 다시 계산
   watch(
-    () => settings.value.maPeriod,
+    () => [
+      settings.value.maPeriod,
+      settings.value.candleUpColor,
+      settings.value.candleDownColor,
+    ],
     () => chart && setChartData(),
   );
+
+  // 표시 여부 등 나머지 옵션은 즉시 반영
+  watch(settings, () => chart && applySettings(), { deep: true });
 
   onBeforeUnmount(() => {
     if (chart) {

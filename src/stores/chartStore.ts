@@ -22,11 +22,27 @@ export const useChartStore = defineStore("chart", () => {
     interval.value = value;
   };
 
+  // ==========================================
+  // 설정 변경 / 초기화
+  // ==========================================
+
+  const updateSettings = (patch: Partial<ChartSettings>) => {
+    settings.value = { ...settings.value, ...patch };
+  };
+
+  const resetSettings = () => {
+    settings.value = { ...DEFAULT_CHART_SETTINGS };
+  };
+
   return {
     interval,
 
     settings,
 
     changeInterval,
+
+    updateSettings,
+
+    resetSettings,
   };
 });

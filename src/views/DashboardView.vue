@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
+import { ref } from "vue";
 import { useMarketData } from "@/composables/useMarketData";
 import AssetList from "@/components/market/AssetList.vue";
 import AssetSummary from "@/components/market/AssetSummary.vue";
 import ChartToolbar from "@/components/chart/ChartToolbar.vue";
 import MarketChart from "@/components/chart/MarketChart.vue";
+import ChartSettingsPanel from "@/components/chart/ChartSettingsPanel.vue";
 
 const { marketStore, chartStore } = useMarketData();
 
 const { assets, selectedId, selectedAsset, candles } = storeToRefs(marketStore);
 
 const { interval, settings } = storeToRefs(chartStore);
+
+const showSettings = ref(false);
 </script>
 
 <template>
@@ -26,6 +30,13 @@ const { interval, settings } = storeToRefs(chartStore);
       <ChartToolbar
         :interval="interval"
         @update:interval="chartStore.changeInterval"
+        @toggle-settings="showSettings = !showSettings"
+      />
+      <ChartSettingsPanel
+        v-if="showSettings"
+        :settings="settings"
+        @update="chartStore.updateSettings"
+        @reset="chartStore.resetSettings"
       />
       <MarketChart :candles="candles" :settings="settings" />
     </section>

@@ -8,6 +8,7 @@ defineProps<{
 
 defineEmits<{
   (e: "update:interval", value: ChartInterval): void;
+  (e: "toggle-settings"): void;
 }>();
 </script>
 
@@ -21,6 +22,7 @@ defineEmits<{
     >
       {{ item }}
     </button>
+    <button class="settings" @click="$emit('toggle-settings')">설정</button>
   </div>
 </template>
 
@@ -43,5 +45,9 @@ button {
     background: rgba(255, 255, 255, 0.08);
     color: var(--text);
   }
+}
+
+.settings {
+  margin-left: auto;
 }
 </style>
