@@ -1,25 +1,16 @@
 <script setup lang="ts">
-import { onMounted, watch } from "vue";
 import { storeToRefs } from "pinia";
-import { useMarketStore } from "@/stores/marketStore";
-import { DEFAULT_CHART_SETTINGS } from "@/types/chart";
+import { useMarketData } from "@/composables/useMarketData";
 import AssetList from "@/components/market/AssetList.vue";
 import AssetSummary from "@/components/market/AssetSummary.vue";
+import ChartToolbar from "@/components/chart/ChartToolbar.vue";
 import MarketChart from "@/components/chart/MarketChart.vue";
 
-const marketStore = useMarketStore();
+const { marketStore, chartStore } = useMarketData();
 
 const { assets, selectedId, selectedAsset, candles } = storeToRefs(marketStore);
 
-// 첫 진입 시 자산 목록 조회 (첫 번째 자산이 자동 선택됨)
-onMounted(() => {
-  marketStore.fetchAssetList();
-});
-
-// 선택된 자산이 바뀌면 캔들 데이터 다시 조회
-watch(selectedId, () => {
-  marketStore.fetchCandleList("1M");
-});
+const { interval, settings } = storeToRefs(chartStore);
 </script>
 
 <template>
@@ -32,7 +23,11 @@ watch(selectedId, () => {
 
     <section class="card main">
       <AssetSummary :asset="selectedAsset" />
-      <MarketChart :candles="candles" :settings="DEFAULT_CHART_SETTINGS" />
+      <ChartToolbar
+        :interval="interval"
+        @update:interval="chartStore.changeInterval"
+      />
+      <MarketChart :candles="candles" :settings="settings" />
     </section>
   </div>
 </template>
